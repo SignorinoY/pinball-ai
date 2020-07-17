@@ -32,7 +32,7 @@ class Pinball(object):
                 )
             )
         
-        self.mu = -self.level['mu'] * 100 * 9.8
+        self.mu = self.level['mu']
 
         self.reset()
 
@@ -116,8 +116,9 @@ class Pinball(object):
                 if self.player.collision(obstacle):
                     speed_x, speed_y = self.player.rebound(obstacle, speed_x, speed_y)
                     break
-
-            speed_slowed = speed + self.mu * 1/FPS if (speed + self.mu * 1/FPS) > 0 else 0
+            
+            mu = - self.mu * 100 * 9.8
+            speed_slowed = speed + mu * 1/FPS if (speed + mu * 1/FPS) > 0 else 0
             speed_x = speed_x * speed_slowed / speed
             speed_y = speed_y * speed_slowed / speed
             speed = speed_slowed
@@ -151,6 +152,10 @@ class Pinball(object):
         observation['size'] = {}
         observation['size']['width'] = self.width
         observation['size']['height'] = self.height
+
+        observation['mu'] = - self.mu / 100 / 9.8
+
+        observation['chance'] = self.chance
 
         observation['player'] = {}
         observation['player']['position'] = self.player.center.x, self.player.center.y
