@@ -12,12 +12,32 @@ RAD = math.pi / 180
 
 FPS = 60
 
+
+def flatten_observation(observation):
+
+    def flatten(items):
+        if isinstance(items, dict):
+            yield from flatten(list(items.values()))
+        elif isinstance(items, list):
+            for item in items:
+                yield from flatten(item)
+        elif isinstance(items, tuple):
+            yield from flatten(list(items))
+        else:
+            yield items
+
+    result = []
+    for item in flatten(observation):
+        result.append(item)
+    return result
+
 class Pinball(object):
 
-    def __init__(self, level, render=False):
+    def __init__(self, level, render=False, flatten=True):
 
         self.level = level
         self.render = render
+        self.flatten = flatten
 
         self.width = self.level['size']['width']
         self.height = self.level['size']['height']
@@ -34,13 +54,15 @@ class Pinball(object):
         
         self.mu = self.level['mu']
 
-        self.reset()
-
         if self.render:
             pygame.init()
             pygame.display.set_caption("Pinball")
             self.screen = pygame.display.set_mode((self.width, self.height), pygame.DOUBLEBUF, 32)
             self.clock = pygame.time.Clock()
+
+        self.action_space = [-1000, 1000]
+        self.action_dim  = 2
+        self.observation_dim = len(self.reset())
 
     def reset(self):
 
@@ -180,4 +202,4 @@ class Pinball(object):
                 }
             )
 
-        return observation
+        return flatten_observation(observation) if self.flatten else observation
