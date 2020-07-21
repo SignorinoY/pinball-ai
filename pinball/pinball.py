@@ -60,7 +60,7 @@ class Pinball(object):
             self.screen = pygame.display.set_mode((self.width, self.height), pygame.DOUBLEBUF, 32)
             self.clock = pygame.time.Clock()
 
-        self.action_space = [-1000, 1000]
+        self.action_space = [-500, 500]
         self.action_dim  = 2
         self.observation_dim = len(self.reset())
 
@@ -114,9 +114,9 @@ class Pinball(object):
 
             for i in range(len(self.enemies) - 1, -1, -1):
                 enemy = self.enemies[i]
-                if self.player.hit(enemy):
+                if enemy.state and self.player.hit(enemy):
                     self.reward += enemy.score
-                    self.enemies.pop(i)
+                    enemy.state = 0
 
             # 墙壁反弹 临时修复卡墙角问题
             if self.player.center.x <= self.player.radius:
@@ -163,7 +163,8 @@ class Pinball(object):
             obstacle.draw(self.screen)
 
         for enemy in self.enemies:
-            enemy.draw(self.screen)
+            if enemy.state:
+                enemy.draw(self.screen)
 
         self.player.draw(self.screen)
 
@@ -194,12 +195,21 @@ class Pinball(object):
 
         observation['enemies'] = []
         for enemy in self.enemies:
-            observation['enemies'].append(
-                {
-                    'position': (enemy.center.x, enemy.center.y),
-                    'radius': enemy.radius,
-                    'score': enemy.score
-                }
-            )
+            if enemy.state:
+                observation['enemies'].append(
+                    {
+                        'position': (enemy.center.x, enemy.center.y),
+                        'radius': enemy.radius,
+                        'score': enemy.score
+                    }
+                )
+            else:
+                observation['enemies'].append(
+                    {
+                        'position': (0, 0),
+                        'radius': 0,
+                        'score': 0
+                    }
+                )
 
         return flatten_observation(observation) if self.flatten else observation

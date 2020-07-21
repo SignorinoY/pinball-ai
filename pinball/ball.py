@@ -5,11 +5,12 @@ import math
 
 class Ball(object):
     
-    def __init__(self, center, radius, color, score):
+    def __init__(self, center, radius, color, score, state=1):
         self.center = center
         self.radius = radius
         self.color = color
         self.score = score
+        self.state = state
 
     def draw(self, screen):
         draw_circle(screen, self.color, self.center, self.radius)
